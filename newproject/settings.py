@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +30,12 @@ SECRET_KEY = 'django-insecure-6xx6m)p*chss(wg6s=iv+d!jq!#f0)#m&h161!kd7sk0qh2vp9
 DEBUG = True
 
 ALLOWED_HOSTS = []
+import os
 
+STATIC_URL = '/static/'
+
+# Add this:
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # For collectstatic
 
 # Application definition
 
@@ -40,6 +49,7 @@ INSTALLED_APPS = [
     'accounts',
     'rest_framework',
       'rest_framework_simplejwt',
+       "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -50,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = 'newproject.urls'
@@ -57,7 +68,7 @@ ROOT_URLCONF = 'newproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "templates"),os.path.join(BASE_DIR, "static"),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,12 +84,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'newproject.wsgi.application'
 
 
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'new',
+        'NAME': 'ecom',
         'USER': 'postgres',
         'PASSWORD': '7070',
         'HOST': 'localhost',
@@ -164,8 +176,31 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),  # Used in API headers
+      "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
 }
 AUTHENTICATION_BACKENDS = [
     'accounts.auth_backends.EmailBackend',  # Custom email authentication
-    'django.contrib.auth.backends.ModelBackend',  # Default authentication
+    'django.contrib.auth.backends.ModelBackend',
+    
 ]
+import os
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Required for `collectstatic`
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",  # ✅ Add frontend origin if using VS Code Live Server
+    "http://localhost:3000",  # ✅ Add if using React
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+
+AUTH_USER_MODEL = 'accounts.CustomUser'  # ✅ Change if using a different app name

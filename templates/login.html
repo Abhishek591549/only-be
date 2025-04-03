@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+        
+        <div id="error-message" class="hidden bg-red-100 text-red-600 p-2 rounded mb-4"></div>
+
+        <form id="login-form" method="POST">
+            {% csrf_token %}  <!-- ✅ CSRF Token -->
+
+            <label class="block mb-2 text-gray-700">Email</label>
+            <input type="email" id="email" name="email" class="w-full p-2 border rounded mb-4" placeholder="Enter your email" required>
+
+            <label class="block mb-2 text-gray-700">Password</label>
+            <input type="password" id="password" name="password" class="w-full p-2 border rounded mb-4" placeholder="Enter your password" required>
+
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                Login
+            </button>
+        </form>
+
+        <p class="mt-4 text-center text-gray-600">
+            Don't have an account? <a href="/register/" class="text-blue-500">Sign up</a>
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const loginForm = document.getElementById("login-form");
+            const errorMessage = document.getElementById("error-message");
+        
+            if (!loginForm) {
+                console.error("❌ Form with ID 'login-form' not found.");
+                return;
+            }
+        
+            loginForm.addEventListener("submit", async function (event) {
+                event.preventDefault();  // ✅ Prevent page reload
+        
+                const emailInput = document.getElementById("email").value;
+                const passwordInput = document.getElementById("password").value;
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        
+                const formData = {
+                    email: emailInput,
+                    password: passwordInput
+                };
+        
+                try {
+                    const response = await fetch("/api/login/", {  
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfToken
+                        },
+                        body: JSON.stringify(formData)  // ✅ Ensure JSON format
+                    });
+        
+                    const data = await response.json();
+                    console.log("✅ Parsed JSON:", data);
+        
+                    if (response.ok) {
+                        alert("✅ Login successful! Redirecting...");
+        
+                        // ✅ Store JWT tokens in local storage
+                        localStorage.setItem("access_token", data.access_token);
+                        localStorage.setItem("refresh_token", data.refresh_token);
+        
+                        // ✅ Redirect to dashboard
+                        window.location.href = data.redirect_url;
+                    } else {
+                        errorMessage.classList.remove("hidden");
+                        errorMessage.textContent = data.error || "❌ Invalid login.";
+                    }
+                } catch (error) {
+                    console.error("❌ Error:", error);
+                    errorMessage.classList.remove("hidden");
+                    errorMessage.textContent = "❌ An error occurred. Please try again.";
+                }
+            });
+        });
+        
+    </script>
+</body>
+</html>

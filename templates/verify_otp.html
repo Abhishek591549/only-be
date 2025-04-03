@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <link rel="stylesheet" href="{% static 'css/verify.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Verify OTP</h2>
+
+        <!-- OTP Form -->
+        <form id="otp-form" method="POST" action="{% url 'api-verify-otp' %}">
+            {% csrf_token %}
+            <input type="hidden" name="email" value="{{ email }}">  <!-- Hidden Email Field -->
+
+            <label>Enter OTP:</label>
+            <input type="text" id="otp_code" name="otp_code" placeholder="Enter OTP" required>
+
+            <button type="submit">Verify OTP</button>
+        </form>
+
+        <!-- Error Message -->
+        <p id="error-message" style="color: red;"></p>
+        <p id="success-message" style="color: green;"></p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const otpForm = document.getElementById("otp-form");
+            const errorMessage = document.getElementById("error-message");
+            const successMessage = document.getElementById("success-message");
+        
+            otpForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+        
+                const formData = {
+                    email: document.querySelector("[name=email]").value,
+                    otp_code: document.getElementById("otp_code").value
+                };
+        
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        
+                try {
+                    const response = await fetch(otpForm.action, {
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfToken 
+                        },
+                        body: JSON.stringify(formData)
+                    });
+        
+                    const data = await response.json();
+                    console.log("🔹 Server Response:", data);  // ✅ Debug Response
+        
+                    if (response.ok) {
+                        successMessage.textContent = "✅ OTP Verified! Redirecting...";
+                        errorMessage.textContent = "";
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 2000);
+                    } else {
+                        errorMessage.textContent = "❌ " + (data.error || "Invalid OTP.");
+                        successMessage.textContent = "";
+                    }
+                } catch (error) {
+                    console.error("❌ Error:", error);
+                    errorMessage.textContent = "❌ An error occurred. Please try again.";
+                    successMessage.textContent = "";
+                }
+            });
+        });
+        
+        
+    </script>
+</body>
+</html>

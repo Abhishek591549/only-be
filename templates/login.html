@@ -32,28 +32,24 @@
         </p>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const loginForm = document.getElementById("login-form");
             const errorMessage = document.getElementById("error-message");
-        
-            if (!loginForm) {
-                console.error("❌ Form with ID 'login-form' not found.");
-                return;
-            }
-        
+    
             loginForm.addEventListener("submit", async function (event) {
                 event.preventDefault();  // ✅ Prevent page reload
-        
+    
                 const emailInput = document.getElementById("email").value;
                 const passwordInput = document.getElementById("password").value;
                 const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        
+    
                 const formData = {
                     email: emailInput,
                     password: passwordInput
                 };
-        
+    
                 try {
                     const response = await fetch("/api/login/", {  
                         method: "POST",
@@ -63,19 +59,26 @@
                         },
                         body: JSON.stringify(formData)  // ✅ Ensure JSON format
                     });
-        
+    
                     const data = await response.json();
-                    console.log("✅ Parsed JSON:", data);
-        
+    
                     if (response.ok) {
-                        alert("✅ Login successful! Redirecting...");
-        
+                        Swal.fire({
+                            icon: "success",
+                            title: "Login Successful!",
+                            text: "Redirecting to Dashboard...",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+    
                         // ✅ Store JWT tokens in local storage
                         localStorage.setItem("access_token", data.access_token);
                         localStorage.setItem("refresh_token", data.refresh_token);
-        
-                        // ✅ Redirect to dashboard
-                        window.location.href = data.redirect_url;
+    
+                        setTimeout(() => {
+                            // ✅ Ensure redirect URL is valid
+                            window.location.href = data.redirect_url || "/dashboard/";
+                        }, 2000);
                     } else {
                         errorMessage.classList.remove("hidden");
                         errorMessage.textContent = data.error || "❌ Invalid login.";
@@ -87,7 +90,6 @@
                 }
             });
         });
-        
     </script>
 </body>
 </html>

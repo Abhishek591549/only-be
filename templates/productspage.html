@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
    <head>
@@ -146,16 +147,16 @@
                   <div class="box">
                      <div class="option_container">
                         <div class="options">
-                           <a href="" class="option1">
+                           <a href="{% url 'cart' 1 %}" class="option1">
                            Men's Shirt
                            </a>
-                           <a href="" class="option2">
+                           <a href="{% url 'buy_now' 1 %}" class="option2">
                            Buy Now
                            </a>
                         </div>
                      </div>
                      <div class="img-box">
-                        <img src="/static/images/p1.png" alt="">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
                      </div>
                      <div class="detail-box">
                         <h5>

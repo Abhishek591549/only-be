@@ -3,7 +3,7 @@ from .views import (
     home_view, register_view, register_user_api,
      verify_otp_api,
     
-    dashboard_view,send_otp_email,send_otp_api, verify_otp, dashboard, logout_user,login_page,logout_user,login_user_api
+    dashboard_view,send_otp_email,send_otp_api, verify_otp,  dashboard_view, logout_user,login_page,logout_user,login_user_api
 
 )
 from . import views
@@ -22,7 +22,14 @@ urlpatterns = [
     path("verify-otp/", verify_otp, name="verify-otp"),
 
       path("login/", login_page, name="login_page"),  # ✅ Login Page
-       path('api/login/', login_user_api, name='api-login'),
-    path("dashboard/", dashboard, name="dashboard"),  # ✅ Dashboard Page
+     path('api/login/', login_user_api, name='login_api'),
+
+     path("dashboard/", dashboard_view, name="dashboard"),
     path("logout/", logout_user, name="logout"),  # ✅ Logout
+        path("about/", views.about, name="about"),  # About Page
+    path("contact/", views.contact, name="contact"),  # Contact Page
+    path("products/", views.productspage, name="productspage"),  # Products Page
+   
+
+
 ]

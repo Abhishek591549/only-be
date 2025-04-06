@@ -89,7 +89,9 @@ def register_user_api(request):
                     "email": user_email,
                     "address": user_address,
                     "mobile_number": mobile_number,
-                    "password": make_password(user_password),
+                 "password": user_password,  # ✅ Raw password (plain text for now)
+
+
                     "otp_code": otp_code,
                     "otp_expiry_time": otp_expiry_time,
                 },
@@ -114,17 +116,9 @@ from django.http import JsonResponse
 from django.core.cache import cache
 import json
 from django.utils.timezone import now
-import json
-from django.http import JsonResponse
-from django.core.cache import cache
-from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser  # Ensure your CustomUser model is correctly imported
-import json
-from django.http import JsonResponse
-from django.core.cache import cache
-from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser  # Import your custom user model
@@ -305,7 +299,8 @@ def verify_otp_api(request):
                 mobile_number=cached_data["mobile_number"],
                 is_verified=True
             )
-            user.set_password(cached_data["password"])
+            user.set_password(cached_data["password"])  # ✅ This will hash it correctly
+
             user.save()
 
             cache.delete(f"user_{user_email}")
@@ -317,61 +312,62 @@ def verify_otp_api(request):
 
     return JsonResponse({"error": "❌ Only POST method allowed"}, status=405)
 
-from django.http import JsonResponse
+# accounts/views.py
 from django.views.decorators.csrf import csrf_exempt
-import json
-from django.contrib.auth import get_user_model
+from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-User = get_user_model()
+import json
+from accounts.models import CustomUser  # import your user model
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from accounts.models import CustomUser
+import json
+
 @csrf_exempt
 def login_user_api(request):
-    """API for user login with email and password."""
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            user_email = data.get("email")
-            user_password = data.get("password")
+            email = data.get("email")
+            password = data.get("password")
 
-            print("🔍 Received Email:", user_email)
-            print("🔍 Received Password:", user_password)
-
-            if not user_email or not user_password:
+            if not email or not password:
                 return JsonResponse({"error": "❌ Email and password are required."}, status=400)
 
-            # ✅ Authenticate user
-            user = authenticate(username=user_email, password=user_password)
+            try:
+                user_obj = CustomUser.objects.get(email=email)
+            except CustomUser.DoesNotExist:
+                return JsonResponse({"error": "❌ Invalid email or password."}, status=400)
+
+            # ✅ Authenticate using the actual username (which Django uses internally)
+            user = authenticate(request, username=user_obj.username, password=password)
 
             if user is None:
-                print("❌ Authentication failed")
                 return JsonResponse({"error": "❌ Invalid email or password."}, status=400)
 
             if not user.is_verified:
-                return JsonResponse({"error": "❌ Email not verified."}, status=400)
+                return JsonResponse({"error": "❌ Email not verified."}, status=403)
 
-            # ✅ Generate JWT Tokens
             refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-
             return JsonResponse({
                 "message": "✅ Login successful!",
-                "access_token": access_token,
-                "refresh_token": refresh_token
-            }, status=200)
+                "access_token": str(refresh.access_token),
+                "refresh_token": str(refresh),
+                "redirect_url": "/dashboard/"
+            })
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "❌ Invalid JSON format."}, status=400)
 
     return JsonResponse({"error": "❌ Only POST method allowed."}, status=405)
+from django.shortcuts import render
 
-
-def dashboard(request):
-    """Render the Dashboard after successful login."""
-    if not request.user.is_authenticated:
-        return redirect("login_page")  # Redirect to login if not authenticated
-
-    return render(request, "dashboard.html", {"user": request.user})
+def dashboard_view(request):
+    return render(request, "dashboard.html")  # Make sure you have a template for this
 def logout_user(request):
     """Logs out the user and redirects to login page."""
     logout(request)  # ✅ Logs out the user
@@ -379,3 +375,21 @@ def logout_user(request):
 def login_page(request):
     """Render the Login Page."""
     return render(request, "login.html")
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout
+
+def about(request):
+    return render(request, "about.html")
+
+def contact(request):
+    return render(request, "contact.html")
+
+def productspage(request):
+    return render(request, "products.html")
+
+def my_orders(request):
+    return render(request, "my_orders.html")
+
+def payment(request):
+    return render(request, "payment.html")
+

@@ -1,0 +1,29 @@
+<!-- templates/my_orders.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Orders</title>
+  <link rel="stylesheet" href="/static/css/style1.css">
+</head>
+<body>
+  <div class="container">
+    <h1>📦 My Orders</h1>
+    {% if orders %}
+    {% for order in orders %}
+    <div class="order-box">
+      <h3>Order #{{ order.id }} | {{ order.created_at }}</h3>
+      <ul>
+        {% for item in order.items.all %}
+        <li>{{ item.product.name }} (x{{ item.quantity }}) - ${{ item.total_price }}</li>
+        {% endfor %}
+      </ul>
+      <p><strong>Status:</strong> {% if order.is_paid %}Paid{% else %}Pending{% endif %}</p>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No orders found.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

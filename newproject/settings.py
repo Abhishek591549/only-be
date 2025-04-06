@@ -204,3 +204,4 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 AUTH_USER_MODEL = 'accounts.CustomUser'  # ✅ Change if using a different app name
+LOGIN_URL = '/accounts/api/login/'
